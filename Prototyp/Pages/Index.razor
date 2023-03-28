@@ -15,7 +15,12 @@
     <CascadingValue Value="Diagram">
         <div style="background-color:orange">
             <h1>Toolbox</h1>
-
+            
+            <div @ondragstart="() => OnDragStart(1)">
+                <GatewayNode Node="new Gateway()"></GatewayNode>
+            </div>
+            
+            
             <div class="row">
                 <div class="text-center" draggable="true" @ondragstart="() => OnDragStart(0)">
                     <span>Activity</span>
