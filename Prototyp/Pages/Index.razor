@@ -1,0 +1,117 @@
+﻿@using Blazor.Diagrams.Core
+@using Blazor.Diagrams.Core.Geometry;
+@using Blazor.Diagrams.Core.Models;
+@using Blazor.Diagrams.Components;
+@using Prototyp.Nodes;
+@page "/"
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, Prototyp!</h1>
+
+<SurveyPrompt Title="Feel free to Drag some Nodes from the Toolbox on the left and drop them on the grey Diagram."></SurveyPrompt>
+
+<div class="wrapper" ondragover="event.preventDefault()" @ondragover:preventDefault @ondrop="OnDrop">
+    <CascadingValue Value="Diagram">
+        <div style="background-color:orange">
+            <h1>Toolbox</h1>
+
+            <div class="row">
+                <div class="text-center" draggable="true" @ondragstart="() => OnDragStart(0)">
+                    <span>Activity</span>
+                </div>
+                <div class="row">
+                    <div class="text-center" draggable="true" @ondragstart="() => OnDragStart(1)">
+                        <span>Gateway</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <DiagramCanvas></DiagramCanvas>
+        <Sidebar></Sidebar>
+        <NavigatorWidget Width="300" Height="200" DefaultStyle="true"></NavigatorWidget>
+    </CascadingValue>
+</div>
+
+
+@code {
+    public Diagram Diagram { get; set; }
+    private int? draggedType;
+
+    protected override void OnInitialized()
+    {
+        DiagramOptions diagramOptions = new DiagramOptions();
+        diagramOptions.AllowMultiSelection = true;
+        diagramOptions.EnableVirtualization = true;
+        diagramOptions.AllowPanning = true;
+
+        Diagram = new Diagram(diagramOptions);
+
+        Diagram.RegisterModelComponent<Activity, ActivityNode>();
+        Diagram.RegisterModelComponent<Gateway, GatewayNode>();
+
+        Setup();
+
+    }
+
+    private void Setup()
+    {
+        var node1 = NewNode(50, 50);
+        var node2 = NewNode(300, 300);
+        var node3 = NewNode(400, 50);
+        var gateway = new Gateway(new Point(250, 50));
+
+        Diagram.Nodes.Add(new[] { node1, node2, node3, gateway });
+        Diagram.Links.Add(new LinkModel(node1.GetPort(PortAlignment.Right), node2.GetPort(PortAlignment.Left)));
+        Diagram.Links.Add(new LinkModel(node1.GetPort(PortAlignment.Right), gateway.GetPort(PortAlignment.BottomLeft)));
+        Diagram.Links.Add(new LinkModel(gateway.GetPort(PortAlignment.TopRight), node3.GetPort(PortAlignment.Left)));
+
+        Diagram.AddGroup(new GroupModel(new[] { node1, node3, gateway }));
+
+    }
+
+    private NodeModel NewNode(double x, double y)
+    {
+        var node = new NodeModel(new Point(x, y));
+        node.AddPort(PortAlignment.Bottom);
+        node.AddPort(PortAlignment.Top);
+        node.AddPort(PortAlignment.Left);
+        node.AddPort(PortAlignment.Right);
+        return node;
+    }
+
+    private void OnDragStart(int key)
+    {
+        draggedType = key;
+    }
+
+    private void OnDrop(DragEventArgs e)
+    {
+        if (draggedType == null)
+            return;
+
+        var position = Diagram.GetRelativeMousePoint(e.ClientX, e.ClientY);
+
+
+        switch (draggedType)
+        {
+            case 0:
+                var node = new NodeModel(position);
+                node.AddPort(PortAlignment.Bottom);
+                node.AddPort(PortAlignment.Top);
+                node.AddPort(PortAlignment.Left);
+                node.AddPort(PortAlignment.Right);
+                Diagram.Nodes.Add(node);
+                break;
+            case 1:
+                Diagram.Nodes.Add(new Gateway(position));
+                break;
+            default:
+                Diagram.Nodes.Add(new NodeModel(position));
+                break;
+        }
+
+        draggedType = null;
+
+    }
+}

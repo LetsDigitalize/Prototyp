@@ -1,0 +1,89 @@
+@using Blazor.Diagrams.Core;
+@using Blazor.Diagrams.Core.Models;
+@using Blazor.Diagrams.Core.Models.Base;
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.AspNetCore.Components.Web;
+@using System;
+
+<div class="sidebar" style="background-color:orange; width:400px">
+    <h1>Properties</h1>
+    @if (_selectedNode == null)
+    {
+
+        <div class="d-flex h-100 align-items-center justify-content-center">
+            No Node selected
+        </div>       
+
+    }
+    else
+    {
+        <h4> @_selectedNode.Id</h4>
+        <div class="form-group">
+            <label for="tableName">Node name</label>
+            <input id="tableName" type="text" class="form-control" value="@_selectedNode.Title" @oninput="OnNodeTitleChanged" />
+        </div>
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Link</th>
+                    <th>Source</th>
+                    <th>Target</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var link in _selectedNode.AllLinks)
+                {
+                    <tr>
+                        <td>
+                            @link.Id
+                        </td>
+                        <td>
+                            @link.SourceNode.Id
+                        </td>
+                        <td>
+                            @link.TargetNode.Id
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private NodeModel _selectedNode;
+
+    [CascadingParameter]
+    public Diagram Diagram { get; set; }
+
+    public void Dispose()
+    {
+        Diagram.SelectionChanged -= Diagram_SelectionChanged;
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        Diagram.SelectionChanged += Diagram_SelectionChanged;
+    }
+
+    private void Diagram_SelectionChanged(SelectableModel model)
+    {
+        if (model is NodeModel tm)
+        {
+            _selectedNode = model.Selected ? tm : null;
+            StateHasChanged();
+        }
+    }
+
+    private void OnNodeTitleChanged(ChangeEventArgs e)
+    {
+        if (_selectedNode == null)
+            return;
+
+        _selectedNode.Title = e.Value.ToString();
+        _selectedNode.Refresh();
+    }
+}

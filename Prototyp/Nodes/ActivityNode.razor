@@ -1,0 +1,23 @@
+﻿@using Blazor.Diagrams.Components.Renderers
+
+
+
+<div class="default-node">
+
+    <input type="text"
+           @bind-value="Node.Description"
+           placeholder="Beschreibung"
+           @onmousedown:stopPropagation
+           @onmouseup:stopPropagation
+           @onmousemove:stopPropagation />
+
+    @foreach (var port in Node.Ports)
+    {
+        <PortRenderer Port="port"></PortRenderer>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Activity Node { get; set; }
+}
